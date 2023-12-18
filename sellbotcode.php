@@ -1,87 +1,48 @@
 <?php
-define('BOT_TOKEN', '6900629278:AAFWe7X6N5gWRyTHnnTnMrKBLOF0DOTng_g');
-define('API_URL', 'https://api.telegram.org/bot'.BOT_TOKEN.'/');
-$TOKEN='6900629278:AAFWe7X6N5gWRyTHnnTnMrKBLOF0DOTng_g'
+$botToken = "6900629278:AAFWe7X6N5gWRyTHnnTnMrKBLOF0DOTng_g";
+$website = "https://api.telegram.org/bot" . $botToken;
 
-function sendMessage($chat_id, $text, $reply_markup = NULL) {
-    $url = API_URL . "sendMessage?chat_id=" . $chat_id . "&text=" . urlencode($text);
-    if ($reply_markup) {
-        $url .= "&reply_markup=" . json_encode($reply_markup);
-    }
+// Function to send messages
+function sendMessage($chatId, $message) {
+    global $website;
+    $url = $website . "/sendMessage?chat_id=" . $chatId . "&text=" . urlencode($message);
     file_get_contents($url);
 }
 
-function mainMenu($chat_id) {
-    $keyboard = [
-        'keyboard' => [
-            [['text' => 'اکانت عمومی']],
-            [['text' => 'اکانت خصوصی']]
-        ],
-        'resize_keyboard' => true,
-        'one_time_keyboard' => true
-    ];
-    sendMessage($chat_id, "لطفاً گزینه‌ای را انتخاب کنید:", $keyboard);
-}
+// Function to handle callbacks
+function handleCallback($callbackQuery) {
+    $chatId = $callbackQuery['message']['chat']['id'];
+    $data = $callbackQuery['data'];
 
-function publicAccountMenu($chat_id) {
-    $keyboard = [
-        'keyboard' => [
-            [['text' => 'یکماهه حجم نامحدود']],
-            [['text' => 'بازگشت به منوی اصلی']]
-        ],
-        'resize_keyboard' => true,
-        'one_time_keyboard' => true
-    ];
-    sendMessage($chat_id, "اکانت عمومی :", $keyboard);
-}
-
-function privateAccountMenu($chat_id) {
-    $keyboard = [
-        'keyboard' => [
-            [['text' => 'یک ماهه حجم نامحدود']],
-            [['text' => 'سه ماهه حجم نامحدود 10% تخفیف']],
-            [['text' => 'شش ماهه حجم نامحدود 12% تخفیف']],
-            [['text' => 'یکساله حجم نامحدود 15% تخفیف']],
-            [['text' => 'بازگشت به منوی اصلی']]
-        ],
-        'resize_keyboard' => true,
-        'one_time_keyboard' => true
-    ];
-    sendMessage($chat_id, "اکانت خصوصی :", $keyboard);
+    switch($data) {
+        case '1-1':
+            sendMessage($chatId, "Please send the payment to this card number: XXXX-XXXX-XXXX-XXXX. Amount: YY");
+            break;
+        // Add more cases for other menu options
+    }
 }
 
 $content = file_get_contents("php://input");
 $update = json_decode($content, true);
 
-if (!$update) {
-    exit;
+if(isset($update["message"])) {
+    $message = $update["message"];
+    $chatId = $message["chat"]["id"];
+
+    // Check if the message has text
+    if(isset($message["text"])) {
+        $text = $message["text"];
+
+        // Implement your menu logic here
+        switch($text) {
+            case "/start":
+                sendMessage($chatId, "Welcome to the VPN Sales Bot!");
+                // Add more code to display initial menu
+                break;
+            // Add more cases for other commands
+        }
+    }
+} elseif(isset($update["callback_query"])) {
+    handleCallback($update["callback_query"]);
 }
-
-$message = $update['message'];
-$chat_id = $message['chat']['id'];
-$text = $message['text'];
-
-switch ($text) {
-    case '/start':
-        mainMenu($chat_id);
-        break;
-    case 'اکانت عمومی':
-        publicAccountMenu($chat_id);
-        break;
-    case 'اکانت خصوصی':
-        privateAccountMenu($chat_id);
-        break;
-    case 'یکماهه حجم نامحدود':
-    case 'یک ماهه حجم نامحدود':
-    case 'سه ماهه حجم نامحدود 10% تخفیف':
-    case 'شش ماهه حجم نامحدود 12% تخفیف':
-    case 'یکساله حجم نامحدود 15% تخفیف':
-        sendMessage($chat_id, "شماره کارت: [شماره کارت]\nمبلغ: [مبلغ مورد نظر]");
-        break;
-    case 'بازگشت به منوی اصلی':
-        mainMenu($chat_id);
-        break;
-    // اضافه کردن سایر کیس‌ها و پاسخ‌های مربوطه
-}
-
 ?>
