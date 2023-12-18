@@ -1,55 +1,47 @@
 <?php
-$botToken = "6900629278:AAFWe7X6N5gWRyTHnnTnMrKBLOF0DOTng_g";
-$website = "https://api.telegram.org/bot" . $botToken;
+define('BOT_TOKEN', '6900629278:AAFWe7X6N5gWRyTHnnTnMrKBLOF0DOTng_g');
+define('API_URL', 'https://api.telegram.org/bot'.BOT_TOKEN.'/');
 
-// Function to send messages
-function sendMessage($chatId, $message) {
-    global $website;
-    $url = $website . "/sendMessage?chat_id=" . $chatId . "&text=" . urlencode($message);
-    file_get_contents($url);
+function sendMessage($chat_id, $text) {
+    file_get_contents(API_URL . "sendMessage?chat_id=" . $chat_id . "&text=" . urlencode($text));
 }
 
-// Function to handle main menu
-function mainMenu($chatId) {
-    sendMessage($chatId, "لطفا یک گزینه را انتخاب کنید:\n1- اکانت عمومی\n2- اکانت خصوصی");
-}
-
-// Function to handle submenu and actions
-function handleMenu($chatId, $text) {
-    switch($text) {
-        case "/start":
-            mainMenu($chatId);
-            break;
-        case "1- اکانت عمومی":
-            sendMessage($chatId, "اکانت عمومی:\n1-1 یکماهه حجم نامحدود\n1-2 بازگشت");
-            break;
-        case "1-1":
-            sendMessage($chatId, "لطفا مبلغ را به شماره کارت XXXX-XXXX-XXXX-XXXX واریز کنید. مبلغ: YY");
-            break;
-        case "1-2":
-        case "2-1-2":
-        case "2-2-2":
-        case "2-3-2":
-        case "2-4-2":
-            mainMenu($chatId);
-            break;
-        case "2- اکانت خصوصی":
-            sendMessage($chatId, "اکانت خصوصی:\n2-1 یک ماهه حجم نامحدود\n2-2 سه ماهه حجم نامحدود 10% تخفیف\n2-3 شش ماهه حجم نامحدود 12% تخفیف\n2-4 یکماهه حجم نامحدود 15% تخفیف");
-            break;
-        // Add more cases for other options
-    }
+function sendMenu($chat_id) {
+    $keyboard = [
+        'keyboard' => [
+            [['text' => 'اکانت عمومی']],
+            [['text' => 'اکانت خصوصی']]
+        ],
+        'resize_keyboard' => true,
+        'one_time_keyboard' => true
+    ];
+    file_get_contents(API_URL . "sendMessage?chat_id=" . $chat_id . "&text=انتخاب کنید&reply_markup=" . json_encode($keyboard));
 }
 
 $content = file_get_contents("php://input");
 $update = json_decode($content, true);
 
-if(isset($update["message"])) {
-    $message = $update["message"];
-    $chatId = $message["chat"]["id"];
-
-    if(isset($message["text"])) {
-        $text = $message["text"];
-        handleMenu($chatId, $text);
-    }
+if (!$update) {
+    exit;
 }
+
+$message = $update['message'];
+$chat_id = $message['chat']['id'];
+$text = $message['text'];
+
+switch ($text) {
+    case '/start':
+        sendMenu($chat_id);
+        break;
+    case 'اکانت عمومی':
+        // اجرای عملیات مربوط به اکانت عمومی
+        sendMessage($chat_id, "گزینه‌های اکانت عمومی");
+        break;
+    case 'اکانت خصوصی':
+        // اجرای عملیات مربوط به اکانت خصوصی
+        sendMessage($chat_id, "گزینه‌های اکانت خصوصی");
+        break;
+    // اضافه کردن کیس‌های دیگر برای دکمه‌های زیرمنو
+}
+
 ?>
