@@ -1,5 +1,5 @@
 <?php
-$token=('6274297006:AAGi3PEF-HOTcrnLmT0omKySMlx16P6mBqk');
+$token = ('6274297006:AAGi3PEF-HOTcrnLmT0omKySMlx16P6mBqk');
 
 function sendMessage($chat_id, $text, $reply_markup = NULL) {
     $url = API_URL . "sendMessage?chat_id=" . $chat_id . "&text=" . urlencode($text);
