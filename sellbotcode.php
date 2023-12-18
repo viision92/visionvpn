@@ -9,16 +9,34 @@ function sendMessage($chatId, $message) {
     file_get_contents($url);
 }
 
-// Function to handle callbacks
-function handleCallback($callbackQuery) {
-    $chatId = $callbackQuery['message']['chat']['id'];
-    $data = $callbackQuery['data'];
+// Function to handle main menu
+function mainMenu($chatId) {
+    sendMessage($chatId, "لطفا یک گزینه را انتخاب کنید:\n1- اکانت عمومی\n2- اکانت خصوصی");
+}
 
-    switch($data) {
-        case '1-1':
-            sendMessage($chatId, "Please send the payment to this card number: XXXX-XXXX-XXXX-XXXX. Amount: YY");
+// Function to handle submenu and actions
+function handleMenu($chatId, $text) {
+    switch($text) {
+        case "/start":
+            mainMenu($chatId);
             break;
-        // Add more cases for other menu options
+        case "1- اکانت عمومی":
+            sendMessage($chatId, "اکانت عمومی:\n1-1 یکماهه حجم نامحدود\n1-2 بازگشت");
+            break;
+        case "1-1":
+            sendMessage($chatId, "لطفا مبلغ را به شماره کارت XXXX-XXXX-XXXX-XXXX واریز کنید. مبلغ: YY");
+            break;
+        case "1-2":
+        case "2-1-2":
+        case "2-2-2":
+        case "2-3-2":
+        case "2-4-2":
+            mainMenu($chatId);
+            break;
+        case "2- اکانت خصوصی":
+            sendMessage($chatId, "اکانت خصوصی:\n2-1 یک ماهه حجم نامحدود\n2-2 سه ماهه حجم نامحدود 10% تخفیف\n2-3 شش ماهه حجم نامحدود 12% تخفیف\n2-4 یکماهه حجم نامحدود 15% تخفیف");
+            break;
+        // Add more cases for other options
     }
 }
 
@@ -29,20 +47,9 @@ if(isset($update["message"])) {
     $message = $update["message"];
     $chatId = $message["chat"]["id"];
 
-    // Check if the message has text
     if(isset($message["text"])) {
         $text = $message["text"];
-
-        // Implement your menu logic here
-        switch($text) {
-            case "/start":
-                sendMessage($chatId, "Welcome to the VPN Sales Bot!");
-                // Add more code to display initial menu
-                break;
-            // Add more cases for other commands
-        }
+        handleMenu($chatId, $text);
     }
-} elseif(isset($update["callback_query"])) {
-    handleCallback($update["callback_query"]);
 }
 ?>
