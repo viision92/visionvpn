@@ -1,56 +1,86 @@
 <?php
-$botToken = "6274297006:AAGi3PEF-HOTcrnLmT0omKySMlx16P6mBqk";
-$website = "https://api.telegram.org/bot".$botToken;
-$content = file_get_contents("php://input");
-$update = json_decode($content, true);
-$chatId = $update["message"]["chat"]["id"];
-$message = $update["message"]["text"];
+define('BOT_TOKEN', '6274297006:AAGi3PEF-HOTcrnLmT0omKySMlx16P6mBqk');
+define('API_URL', 'https://api.telegram.org/bot'.BOT_TOKEN.'/');
 
-switch($message) {
-    case "/start":
-        sendMessage($chatId, "به ویژن خوش آمدید. لطفا یک گزینه را انتخاب کنید.", $mainMenu);
-        break;
-    case "اکانت عمومی":
-        sendMessage($chatId, "انتخاب کنید:", $publicAccountMenu);
-        break;
-    case "یکماهه حجم نامحدود":
-        sendMessage($chatId, "قیمت: 35 هزار تومان\nلطفا پرداخت کنید و سپس شماره تراکنش را ارسال کنید.", null);
-        break;
-    case "اکانت خصوصی":
-        sendMessage($chatId, "انتخاب کنید:", $privateAccountMenu);
-        break;
-    // ... ادامه کد برای دیگر گزینه‌ها
-    default:
-        // پردازش سایر پیام‌ها
-        break;
-}
-
-function sendMessage($chatId, $message, $replyMarkup = null) {
-    $url = $GLOBALS['website']."/sendMessage?chat_id=".$chatId."&text=".urlencode($message);
-    if ($replyMarkup) {
-        $url .= "&reply_markup=".json_encode($replyMarkup);
+function sendMessage($chat_id, $text, $reply_markup = NULL) {
+    $url = API_URL . "sendMessage?chat_id=" . $chat_id . "&text=" . urlencode($text);
+    if ($reply_markup) {
+        $url .= "&reply_markup=" . json_encode($reply_markup);
     }
     file_get_contents($url);
 }
 
-$mainMenu = [
-    'keyboard' => [['اکانت عمومی'], ['اکانت خصوصی']],
-    'resize_keyboard' => true,
-    'one_time_keyboard' => false
-];
+function mainMenu($chat_id) {
+    $keyboard = [
+        'keyboard' => [
+            [['text' => 'اکانت عمومی']],
+            [['text' => 'اکانت خصوصی']]
+        ],
+        'resize_keyboard' => true,
+        'one_time_keyboard' => true
+    ];
+    sendMessage($chat_id, "لطفاً گزینه‌ای را انتخاب کنید:", $keyboard);
+}
 
-$publicAccountMenu = [
-    'keyboard' => [['یکماهه حجم نامحدود'], ['بازگشت']],
-    'resize_keyboard' => true,
-    'one_time_keyboard' => false
-];
+function publicAccountMenu($chat_id) {
+    $keyboard = [
+        'keyboard' => [
+            [['text' => 'یکماهه حجم نامحدود']],
+            [['text' => 'بازگشت به منوی اصلی']]
+        ],
+        'resize_keyboard' => true,
+        'one_time_keyboard' => true
+    ];
+    sendMessage($chat_id, "گزینه‌های اکانت عمومی:", $keyboard);
+}
 
-$privateAccountMenu = [
-    'keyboard' => [['یک ماهه حجم نامحدود'], ['سه ماهه حجم نامحدود 10% تخفیف'], ['شش ماهه حجم نامحدود 12% تخفیف'], ['یکماهه حجم نامحدود 15% تخفیف'], ['بازگشت']],
-    'resize_keyboard' => true,
-    'one_time_keyboard' => false
-];
+function privateAccountMenu($chat_id) {
+    $keyboard = [
+        'keyboard' => [
+            [['text' => 'یک ماهه حجم نامحدود']],
+            [['text' => 'سه ماهه حجم نامحدود 10% تخفیف']],
+            [['text' => 'شش ماهه حجم نامحدود 12% تخفیف']],
+            [['text' => 'یکساله حجم نامحدود 15% تخفیف']],
+            [['text' => 'بازگشت به منوی اصلی']]
+        ],
+        'resize_keyboard' => true,
+        'one_time_keyboard' => true
+    ];
+    sendMessage($chat_id, "گزینه‌های اکانت خصوصی:", $keyboard);
+}
 
-// ... بقیه تعریف‌های منو
+$content = file_get_contents("php://input");
+$update = json_decode($content, true);
+
+if (!$update) {
+    exit;
+}
+
+$message = $update['message'];
+$chat_id = $message['chat']['id'];
+$text = $message['text'];
+
+switch ($text) {
+    case '/start':
+        mainMenu($chat_id);
+        break;
+    case 'اکانت عمومی':
+        publicAccountMenu($chat_id);
+        break;
+    case 'اکانت خصوصی':
+        privateAccountMenu($chat_id);
+        break;
+    case 'یکماهه حجم نامحدود':
+    case 'یک ماهه حجم نامحدود':
+    case 'سه ماهه حجم نامحدود 10% تخفیف':
+    case 'شش ماهه حجم نامحدود 12% تخفیف':
+    case 'یکساله حجم نامحدود 15% تخفیف':
+        sendMessage($chat_id, "شماره کارت: [شماره کارت]\nمبلغ: [مبلغ مورد نظر]");
+        break;
+    case 'بازگشت به منوی اصلی':
+        mainMenu($chat_id);
+        break;
+    // اضافه کردن سایر کیس‌ها و پاسخ‌های مربوطه
+}
 
 ?>
