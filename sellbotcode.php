@@ -1,5 +1,6 @@
 <?php
-$token = ('6274297006:AAGi3PEF-HOTcrnLmT0omKySMlx16P6mBqk');
+define('BOT_TOKEN', '6900629278:AAFWe7X6N5gWRyTHnnTnMrKBLOF0DOTng_g');
+define('API_URL', 'https://api.telegram.org/bot'.BOT_TOKEN.'/');
 
 function sendMessage($chat_id, $text, $reply_markup = NULL) {
     $url = API_URL . "sendMessage?chat_id=" . $chat_id . "&text=" . urlencode($text);
